@@ -80,9 +80,14 @@ class Comment(models.Model):
     def get_absolute_url(self):
         return reverse('post_detail', kwargs={'pk': self.post.pk})
 
+    
     def __str__(self):
-        return f"Comment by {self.guest_name or self.user.username} on {self.post.title}"
-
+        if self.guest_name:
+            return f"Comment by {self.guest_name} on {self.post.title}"
+        elif self.user:
+            return f"Comment by {self.user.username} on {self.post.title}"
+        else:
+            return f"Comment by Anonymous on {self.post.title}"
 
 # Like model
 class Like(models.Model):

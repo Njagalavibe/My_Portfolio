@@ -12,12 +12,12 @@
 <div>
     <form method="POST" action="{% url 'like_post' post.pk %}" style="display: inline;">
         {% csrf_token %}
-        <button type="submit" name="like">Like ({{ post.likes.count }})</button>
+        <button type="submit" name="like">👍({{ post.likes.count }})</button>
     </form>
     
     <form method="POST" action="{% url 'dislike_post' post.pk %}" style="display: inline;">
         {% csrf_token %}
-        <button type="submit" name="dislike">Dislike ({{ post.dislikes.count }})</button>
+        <button type="submit" name="dislike">👎({{ post.dislikes.count }})</button>
     </form>
 </div>
 
@@ -57,14 +57,15 @@
 </div>
 
 <!-- EDIT/DELETE BUTTONS -->
+ <!--
 <div style="margin-top: 20px;">
     <a href="{% url 'post_edit' post.pk %}"><button>Edit Post</button></a>
     <a href="{% url 'post_delete' post.pk %}"><button>Delete Post</button></a>
 </div>
-
+-------->
 <!-- BACK TO LIST -->
 <div style="margin-top: 20px;">
-    <button href="{% url 'home' %}">← Back</button>
+    <a href="{% url 'home' %}"><button>← Back</button></a>
 </div>
 
 <!-- JAVASCRIPT -->
