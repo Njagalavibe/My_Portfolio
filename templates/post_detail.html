@@ -1,10 +1,90 @@
-{%extends 'base.html'%}
-{%block content%}
-    <div class="post_entry">
-        <h2>{{post.title}}</h2>
-        <p>{{post.body}}</p>
-        <small>Published on: {{post.published_date}}</small>
+
+{% extends 'base.html' %}
+
+{% block content %}
+<article>
+    <h1>{{ post.title }}</h1>
+    <p>By {{ post.author }} on {{ post.published_date }}</p>
+    <div>{{ post.body }}</div>
+</article>
+
+<!-- LIKE/DISLIKE BUTTONS -->
+<div>
+    <form method="POST" action="{% url 'like_post' post.pk %}" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" name="like">Like ({{ post.likes.count }})</button>
+    </form>
+    
+    <form method="POST" action="{% url 'dislike_post' post.pk %}" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" name="dislike">Dislike ({{ post.dislikes.count }})</button>
+    </form>
+</div>
+
+<!-- COMMENT BUTTON AND FORM -->
+<div style="margin-top: 20px;">
+    <button id="comment-toggle-btn" type="button">Add Comment</button>
+    
+    <div id="comment-form-container" style="display: none; margin-top: 10px;">
+        <form method="POST" action="{% url 'add_comment' post.pk %}">
+            {% csrf_token %}
+            <div>
+                <textarea name="content" rows="4" cols="50" placeholder="Write your comment here..."></textarea>
+            </div>
+            <button type="submit">Submit Comment</button>
+            <button type="button" id="cancel-comment-btn">Cancel</button>
+        </form>
     </div>
+</div>
+
+<!-- DISPLAY EXISTING COMMENTS -->
+<div style="margin-top: 20px;">
+    <h3>Comments ({{ post.comments.count }})</h3>
+    {% for comment in post.comments.all %}
+    <div style="border: 1px solid #ccc; padding: 10px; margin: 10px 0;">
+        <p><strong>{{ comment.author }}</strong> - {{ comment.created_date }}</p>
+        <p>{{ comment.body }}</p>
+    </div>
+    {% empty %}
+    <p>No comments yet.</p>
+    {% endfor %}
+</div>
+
+<!-- EDIT/DELETE BUTTONS -->
+<div style="margin-top: 20px;">
     <a href="{% url 'post_edit' post.pk %}"><button>Edit Post</button></a>
     <a href="{% url 'post_delete' post.pk %}"><button>Delete Post</button></a>
-{%endblock content%}
+</div>
+
+<!-- BACK TO LIST -->
+<div style="margin-top: 20px;">
+    <a href="{% url 'post_list' %}">← Back to all posts</a>
+</div>
+
+<!-- JAVASCRIPT -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const commentToggleBtn = document.getElementById('comment-toggle-btn');
+    const commentFormContainer = document.getElementById('comment-form-container');
+    const cancelCommentBtn = document.getElementById('cancel-comment-btn');
+    
+    // Show comment form when "Add Comment" button is clicked
+    commentToggleBtn.addEventListener('click', function() {
+        commentFormContainer.style.display = 'block';
+        commentToggleBtn.style.display = 'none';
+    });
+    
+    // Hide comment form when "Cancel" button is clicked
+    cancelCommentBtn.addEventListener('click', function() {
+        commentFormContainer.style.display = 'none';
+        commentToggleBtn.style.display = 'block';
+    });
+
+    // If the form was submitted with errors, keep it visible
+    {% if form.errors %}
+    commentFormContainer.style.display = 'block';
+    commentToggleBtn.style.display = 'none';
+    {% endif %}
+});
+</script>
+{% endblock %}
