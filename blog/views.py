@@ -2,77 +2,54 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.shortcuts import render, get_object_or_404, redirect
 
 from django.urls import reverse_lazy 
-from .models import Post, Like, Comment
+from .models import Post, Like, Comment, Project
 from .forms import CommentForm
 
-# Views for blog posts
-class BlogPostsView(ListView):
-    model = Post        
-    template_name = 'home.html'
 
-def post_detail(request, pk):
-    post = get_object_or_404(Post, pk=pk)
-    
-    # Ensure session exists for anonymous tracking
-    if not request.session.session_key:
-        request.session.create()
-    session_key = request.session.session_key
-    
-    # Check if user has already reacted
-    user_reaction = post.get_user_reaction(session_key)
-    
-    # Handle POST requests
-    if request.method == 'POST':
-        # Check if it's a like/dislike action
-        if 'like' in request.POST:
-            return like_post(request, pk)
-        elif 'dislike' in request.POST:
-            return dislike_post(request, pk)
-        else:
-            # Handle comment submission
-            form = CommentForm(request.POST)
-            if form.is_valid():
-                comment = form.save(commit=False)
-                comment.post = post
-                if request.user.is_authenticated:
-                    comment.user = request.user
-                else:
-                    comment.guest_name = "Anonymous"
-                comment.save()
-                return redirect('post_detail', pk=post.pk)
-    else:
-        form = CommentForm()
-    
-    # Get comments for this post
-    comments = post.comments.all().order_by('-created_date')
-    
-    context = {
-        'post': post,
-        'user_reaction': user_reaction,
-        'session_key': session_key,
-        'comment_form': form,
-        'comments': comments,
-    }
-    return render(request, 'post_detail.html', context)
+# PUBLIC VIEWS
+# Home page view
+def home(request):
+    """
+    Home page with custom animations and unique menu design.
+    No blog posts displayed - just artistic elements and navigation.
+    """
+    return render(request, 'home.html')
 
-# Create, Update, Delete views
-class BlogPostCreateView(CreateView):
-    model = Post
-    template_name = 'post_new.html'
-    fields = '__all__'
+# Blogs views
+def blogs_page(request):
+    """Show all published blog posts"""
+    posts = Post.objects.filter(status='published').order_by('-published_date')
+    return render(request, 'blogs_page.html', {'posts': posts})
 
-class BlogPostUpdateView(UpdateView):
-    model = Post
-    template_name = 'post_edit.html'
-    fields = ['title', 'body']
+# Single blog post view
+def blog_detail(request, slug):
+    """Show single blog post - UPDATED to use slug"""
+    post = get_object_or_404(Post, slug=slug)
+    # TODO: Update session-based logic to user-based
+    return render(request, 'blog_detail.html', {'post': post})
 
-class BlogPostDeleteView(DeleteView):
-    model = Post
-    template_name = 'post_delete.html'
-    success_url = reverse_lazy('home')
+# Projects views
+def projects_page(request):
+    """Show all projects"""
+    projects = Project.objects.all().order_by('-created_date')
+    return render(request, 'projects_page.html', {'projects': projects})
 
+# Single project view
+def project_detail(request, slug):
+    """Show single project"""
+    project = get_object_or_404(Project, slug=slug)
+    return render(request, 'project_detail.html', {'project': project})
+
+# About page view
+def about(request):
+    """About page"""
+    return render(request, 'about.html')
+
+
+#  INTERACTION VIEWS 
+# TODO: Update these to use slug and user-based system
 # Like/Dislike functionality
-def like_post(request, pk):
+def like_blog_post(request, pk):
     post = get_object_or_404(Post, pk=pk)
     
     # Ensure session exists
@@ -97,7 +74,7 @@ def like_post(request, pk):
     
     return redirect(request.META.get('HTTP_REFERER', 'home'))
 
-def dislike_post(request, pk):
+def dislike_blog_post(request, pk):
     post = get_object_or_404(Post, pk=pk)
     
     if not request.session.session_key:
@@ -116,3 +93,21 @@ def dislike_post(request, pk):
         Like.objects.create(post=post, session_key=session_key, reaction_type='dislike')
     
     return redirect(request.META.get('HTTP_REFERER', 'home'))
+
+
+# ADMIN VIEWS
+class BlogPostCreateView(CreateView):
+    model = Post
+    template_name = 'blog_post_new.html'
+    fields = '__all__'
+
+class BlogPostUpdateView(UpdateView):
+    model = Post
+    template_name = 'blog_post_edit.html'
+    fields = ['title', 'body']
+
+class BlogPostDeleteView(DeleteView):
+    model = Post
+    template_name = 'blog_post_delete.html'
+    success_url = reverse_lazy('home')
+

@@ -1,31 +1,7 @@
 {% extends 'base.html' %}
 
+{% block title %}Home{% endblock %}
+
 {% block content %}
-    {% for post in object_list %}
-        <div class="post_entry">
-            <h2><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></h2>
-            <p>{{ post.body }}</p>
-
-             <small>Published on: {{ post.published_date }}</small>
-
-            <!-- LIKE/DISLIKE BUTTONS - FUNCTIONAL -->
-            <div>
-                <!-- Like Button -->
-                <form method="POST" action="{% url 'like_post' post.pk %}" style="display: inline;">
-                    {% csrf_token %}
-                    <button type="submit">👍{{ post.like_count }}</button>
-                </form>
-                
-                <!-- Dislike Button -->
-                <form method="POST" action="{% url 'dislike_post' post.pk %}" style="display: inline;">
-                    {% csrf_token %}
-                    <button type="submit">👎{{ post.dislike_count }}</button>
-                </form>
-                
-                <!-- Comment Count -->
-                <span>💬 {{ post.comment_count }}</span>
-            </div>
-            
-        </div>
-    {% endfor %}
-{% endblock content %}
+<h1>Home Page - Your animations will go here</h1>
+{% endblock %}
